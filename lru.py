@@ -1,14 +1,15 @@
+from collections import Iterable
 cache = {}
 
 
 class Cache:
-    def __init__(self):
+    def __init__(self, lru_length=7):
         self.cache_content = {}
         self.cache_list = []
-        self.lru_length = 7#how to read only, property
+        self.lru_length = lru_length
 
 
-def cached(item_name):
+def cached(item_name,lru_length=7):
     """
     :param item_name:
         ``item name to cached``
@@ -16,13 +17,13 @@ def cached(item_name):
         ``string``
     """
     if not cache.has_key(item_name):
-        cache[item_name] = Cache()
+        cache[item_name] = Cache(lru_length)
     def wrapper_maker(get_data_from_db):
         def wrapper(self, **kargs):
             """
             :requirements:
                 ```decorated function has at least one parameter```
-                ```param of decorated function passed by kargs```
+                ```NOTICE: param of DECORATED function passed by kargs```
             """
             cache_key = kargs.values()[0]
             try:

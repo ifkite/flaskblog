@@ -6,15 +6,18 @@ String, Text, DateTime)
 from sqlalchemy.orm import sessionmaker
 from wtforms import form, fields, validators
 from werkzeug.security import check_password_hash
+from lru import cached
 
 engine = create_engine('mysql+mysqldb://pyblog_admin:@localhost/pyblog',\
                        encoding='utf-8')
 metadata = MetaData()
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
+sess = Session()
 class DataQuery:
 #PASSED
-    def get_article_by_aid(self, sess, aid):
+    @cached('article_aid')
+    def get_article_by_aid(self, aid):
         #article = sess.query(Article).filter_by(aid=aid).one()
         article = sess.execute("select aid,title,slug,content, \
                                 create_time,update_time \
@@ -22,23 +25,24 @@ class DataQuery:
                                 where aid=:aid",{"aid": aid}).fetchone()
         return article
 
-    def get_articles_num(self, sess):
+    def get_articles_num(self):
         article_num = sess.execute("select count(*) as num\
                                     from article").fetchone()
         return article_num
 
-    def get_articles_by_cid(self, sess, cid):
+    def get_articles_by_cid(self, cid):
         article_categories = sess.query(Article_category).filter_by(cid=cid).all()
         for article_category in article_categories:
             yield article_category.aid
 
 #PASSED
-    def get_articles_by_tid(self, sess, tid):
+    def get_articles_by_tid(self, tid):
         article_tags = sess.query(Article_tag).filter_by(tid=tid).all()
         for article_tag in article_tags:
             yield article_tag.aid
 
-    def get_articles_with_date(self, sess):
+
+    def get_articles_with_date(self):
         articles = sess.execute("select aid,title,content,\
                                  concat(year(create_time),month(create_time)) \
                                  as c_time \
@@ -48,14 +52,15 @@ class DataQuery:
         for article in articles:
             yield article
 
-    def get_articles_by_date(self, sess, para_date):
+    @cached('article_date')
+    def get_articles_by_date(self, para_date):
         return sess.execute("select * \
                              from article \
                              where concat(year(update_time),month(update_time))= :para_date",
                              {'para_date': para_date}).fetchall()
 
-
-    def get_next(self, sess, update_time):
+    @cached('next_article')
+    def get_next(self, update_time):
         aid_title = sess.execute("select aid,title \
                             from article \
                             where update_time < :update_time \
@@ -63,7 +68,8 @@ class DataQuery:
                             {'update_time': update_time}).fetchone()
         return aid_title
 
-    def get_prev(self, sess, update_time):
+    @cached('prev_article')
+    def get_prev(self, update_time):
         aid_title = sess.execute("select aid,title \
                             from article \
                             where update_time > :update_time \
@@ -71,7 +77,8 @@ class DataQuery:
                             {'update_time': update_time}).fetchone()
         return aid_title
 
-    def get_recent_articles(self, sess, start_artcle, per_page):
+
+    def get_recent_articles(self, start_artcle, per_page):
         articles = sess.execute("select aid, title,slug, content, create_time, update_time\
                                  from article\
                                  order by update_time desc\
@@ -81,7 +88,7 @@ class DataQuery:
                                ).fetchall()
         return articles
 
-    def get_num_by_date(self, sess):
+    def get_num_by_date(self):
         aid_counts = sess.execute("select year(update_time),\
                                           month(update_time), count(aid)\
                                    from article\
@@ -90,27 +97,27 @@ class DataQuery:
         #need to test and modify
         return aid_counts
 
-    def get_num_by_categoty(self, sess, cid):
+    def get_num_by_categoty(self, cid):
         aid_counts = sess.execute("select count(aid),cid\
                                    from article_category\
                                    group by :cid",{"cid":cid}).fetchall()
         return aid_counts
 
-    def get_num_by_tag(self, sess, tid):
+    def get_num_by_tag(self, tid):
         aid_counts = sess.execute("select count(aid), tid\
                                    from article_tag\
                                    group by :tid",{"tid": tid}).fetchall()
         return aid_counts
 
 #PASSED
-    def get_article_cids(self, sess, aid):
+    def get_article_cids(self, aid):
         cids = sess.execute("select cid\
                              from article_category\
                              where aid=:aid",{"aid": aid}).fetchall()
         for cid in cids:
             yield cid
 
-    def get_article_tids(self, sess, aid):
+    def get_article_tids(self, aid):
         tids = sess.execute("select tid\
                              from article_tag\
                              where aid= :aid",{"aid": aid}).fetchall()
@@ -118,53 +125,55 @@ class DataQuery:
             yield tid
 
 #PASSED
-    def get_tag(self, sess, tid):
+    def get_tag(self, tid):
         tname = sess.execute("select tname\
                             from tag\
                             where tid=:tid",{"tid": tid}).fetchone()
         #return ('tname blah',)
         return tname
 
-    def get_all_tags(self, sess):
+    def get_all_tags(self):
         tags = sess.execute("select distinct tid,tname\
                              from tag").fetchall()
         for tag in tags:
             yield tag
 
-    def get_tid(self, sess, tname):
+    def get_tid(self, tname):
         tid = sess.execute("select tid\
                             from tag\
                             where tname=:tname",{"tname": tname}).fetchone()
         return tid
 
-    def get_cname(self, sess, cid):
+    @cached('cname')
+    def get_cname(self, cid):
         cname = sess.execute("select cname\
                               from category\
                               where cid=:cid",{"cid":cid}).fetchone()
         return cname
 
-    def get_tname(self, sess, tid):
+    @cached('tname')
+    def get_tname(self, tid):
         tname = sess.execute("select tname\
                               from tag\
                               where tid=:tid",{"tid": tid}).fetchone()
         return tname
 
-    def get_all_categories(self, sess):
+    def get_all_categories(self):
         categories = sess.execute("select distinct cid,cname\
                                    from category").fetchall()
         for category in categories:
             yield category
 
-    def get_cid(self, sess, cname):
+    def get_cid(self, cname):
         cid = sess.execute("select cid\
                             from category\
                             where cname=:cname",{"cname": cname}).fetchone()
         return cid
 
-    def get_user(self, sess, username):
+    def get_user(self, username):
         return sess.query(User).filter_by(username=username).first()
 
-    def get_comments_by_aid(self, sess, aid):
+    def get_comments_by_aid(self, aid):
         comments = sess.execute("select comment_id, aid,\
                                  com_content, create_time, update_time\
                                  from comment\
@@ -173,8 +182,9 @@ class DataQuery:
         for comment in comments:
             yield comment
 
+
 class DataPost:
-    def ins_new_article(self, sess, title, slug, content):
+    def ins_new_article(self, title, slug, content):
         """
         MySql expression
         -- $(var) stands for argument
@@ -189,7 +199,7 @@ class DataPost:
         sess.commit()
         return article.aid
 
-    def update_article(sess, aid, title, slug, content):
+    def update_article(self, aid, title, slug, content):
         sess.execute("update article set title=:title,slug=:slug,\
                       content=:content,update_time:=update_time \
                       where aid=:aid",{"title": title,"slug": slug,
@@ -197,24 +207,24 @@ class DataPost:
                       "aid": aid}
                     )
 
-    def ins_cate(self, sess, cname):
+    def ins_cate(self, cname):
         category = Category(cname=cname)
         sess.add(category)
         sess.commit()
         return category.cid
 
-    def modify_cate(self, sess, cid, cname):
+    def modify_cate(self, cid, cname):
         sess.execute("update category set cname=:cname where cid=:cid",
                      {"cname": cname,"cid": cid})
         sess.commit()
 
-    def attach_cate(self, sess, aid, cid):
+    def attach_cate(self, aid, cid):
         article_category=Article_category(aid=aid,cid=cid)
         sess.add(article_category)
         sess.commit()
 
 #PASSED
-    def ins_tag(self, sess, tname):
+    def ins_tag(self, tname):
         tag = Tag(tname=tname)
         sess.add(tag)
         sess.commit()
@@ -227,13 +237,12 @@ class DataPost:
         sess.commit()
 
 #PASSED
-    def attach_tag(self, sess, aid, tid):
+    def attach_tag(self, aid, tid):
         article_tag = Article_tag(aid=aid, tid=tid)
         sess.add(article_tag)
         sess.commit()
 
     def ins_comment(self, aid, author, com_content):
-        sess = Session()
         comment = Comment(aid=aid, com_content=com_content, author=author,
                           create_time=date.utcnow(),
                           update_time=date.utcnow())
@@ -242,7 +251,6 @@ class DataPost:
         return comment.comment_id
 
     def modify_comment(self, aid, com_content):
-        sess = Session()
         sess.execute("update comment set com_content=:com_content,\
                       update_time=:update_time where aid=:aid",
                       {"com_content": com_content,"update_time": date.utcnow(),
@@ -250,7 +258,6 @@ class DataPost:
         sess.commit()
 
     def ins_comment_reply(self, comment_id, reply_to_id):
-        sess = Session()
         reply = Reply(comment_id=comment_id, reply_to_id=reply_to_id)
         sess.add(reply)
         sess.commit()
