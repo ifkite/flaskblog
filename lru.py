@@ -45,6 +45,14 @@ def cached(item_name,lru_length=7):
     return wrapper_maker
 
 
+def fresh(item_name, cache_key):
+    try:
+        idx = cache[item_name].cache_list.index(cache_key)
+        cache[item_name].cache_list.pop(idx)
+        cache[item_name].cache_content.pop(cache_key, None)
+    except ValueError:
+        pass
+
 #old code is as follows, the above code is more generic.
 #cache = {}
 #cache_list = []
