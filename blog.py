@@ -8,7 +8,7 @@ from flask.ext.admin.contrib import sqla
 from flask.ext import login, admin
 from flask.ext.admin import helpers, expose
 from werkzeug.security import check_password_hash
-from models_orm import (Article, Category, Tag, DataQuery)
+from models import (Article, Category, Tag, DataQuery)
 from utils import app, db
 
 blog = Blueprint('blog', __name__)
@@ -190,15 +190,22 @@ def publish(aid=None):
         article = Article.query.filter_by(aid=aid).first()
         return render_template('publish.html', aid=aid, article=article)
 
-# @blog.route('/_comment',methods=["GET", "POST"])
-# def comment():
-#     author = request.form.get('author', 'no author', type=str)
-#     email = request.form.get('email', 'no email', type=str)
-#     content = request.form.get('comment', 'no content', type=str)
-#     aid = request.form.get('aid',type=int)
-#     datapost.ins_comment(aid, author, content)
-#     return jsonify(comment_html=render_template('comment.html',
-#                    author=author, content=content))
+@blog.route('/delete/<int:aid>')
+def delete(aid):
+    article = dataquery.get_article_by_aid(aid)
+    if article:
+        article.is_delete = True
+    return redirect(url_for('blog.home'))
+
+@blog.route('/_comment',methods=["GET", "POST"])
+def comment():
+    author = request.form.get('author', 'no author', type=str)
+    email = request.form.get('email', 'no email', type=str)
+    content = request.form.get('comment', 'no content', type=str)
+    #aid = request.form.get('aid',type=int)
+    #datapost.ins_comment(aid, author, content)
+    return jsonify(comment_html=
+                   render_template('comment.html', author=author, content=content))
 
 #@blog.route('backdoor')
 #    pass

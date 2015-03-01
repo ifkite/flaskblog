@@ -1,0 +1,5 @@
+markdown
+flask
+MySQLdb
+sqlalchemy
+flask_sqlalchemy

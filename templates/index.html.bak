@@ -1,0 +1,186 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+{% include 'head.html' %}
+</head>
+
+<body>
+<div id="page" class="hfeed">
+<div id="wrapper">
+{% include 'banner.html' %}
+<!-- #branding -->
+{% include 'message.html' %}
+
+<div id="main">
+
+<div id="primary">
+  <div id="content" role="main">
+  
+  <div class="intro">{{intro}}</div>
+  <!-- begin article -->
+
+  <!--article class="post hentry format-image">
+  	<header class="entry-header">
+		<h2 class="entry-title"><a href="post.html">A Wonderful Serenity</a></h2>
+		<div class="entry-meta">
+      		<div class="entry-format">
+        		<span class="image-format">image</span>
+        	</div>
+      		<span class="sep"> | </span>
+      		<a href="#"><time class="entry-date">May 21, 2013</time></a>
+      		<span class="sep"> | </span>	
+      		<span class="cat-links"> <a href="#">Photography</a></span>
+      		<span class="sep"> | </span>
+      		<div class="comments-link">
+	        	<a href="#">4 Comments</a>
+	        </div>
+     	</div>
+    </header>
+    
+    <div class="entry-content">
+      <div class="full-size">
+      	<a href="post.html"><img width="1040" height="535" src="style/images/art/post1.jpg" alt="" /></a>
+      </div>
+      <p>A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart. I am alone, and feel the charm of existence in this spot, which was created for the bliss of souls like mine. I am so happy, my dear friend, so absorbed in the exquisite sense of mere tranquil existence, that I neglect my talents.</p>
+ 	</div>
+  </article-->
+
+  {% if articles %}
+  {% for article in articles %}
+  <article class="post hentry format-standard">
+    <header class="entry-header">
+    <h2 class="entry-title"><a href="{{url_for('blog.article',aid=article.aid)}}">{{article.title|safe}}</a></h2>
+    <div class="entry-meta">
+          <div class="entry-format">
+            <span class="standard-format">standard</span>
+          </div>
+          <span class="sep"> | </span>
+          <a href="#"><time class="entry-date">{{article.create_time}}</time></a>
+          <span class="sep"> | </span> 
+          <span class="cat-links"> <a href="#">Photograph</a></span>
+          <span class="sep"> | </span>
+          <div class="comments-link">
+            <a href="#">1 Comment</a>
+          </div>
+      </div>
+      <!-- .entry-meta -->
+    </header>
+    <!-- .entry-header -->
+    
+    <div class="entry-content">
+      {{article.slug|safe}}
+      <!--p>When, while the <strong>lovely valley</strong> teems with vapour around me, and the meridian sun strikes the upper surface of the impenetrable foliage of my trees, and but a few stray gleams steal into the inner sanctuary, I throw myself down among the tall grass by the trickling stream; and, as I lie close to the earth, a thousand unknown plants are noticed by me: when I hear the buzz of the little world among the stalks, and grow familiar with the countless indescribable forms of the insects and flies.</p>
+<p>Then I feel the <a href="#">presence of the Almighty</a>, who formed us in his own image, and the breath of that universal love which bears and sustains us, as it floats around us in an eternity of bliss; and then, my friend, when darkness overspreads my eyes, and heaven and earth seem to dwell in my soul and absorb its power, like the form of a beloved mistress, then I often think with longing, Oh, would I could describe these conceptions, could impress upon paper all that is living so full and warm within me, that it might be the mirror of my soul, as my soul is the mirror of the infinite God!</p-->
+
+  </div>
+    <!-- .entry-content -->
+  </article>
+  <!-- end article -->
+  {% endfor %}
+  {% else %}
+  <div>no post</div>
+  {% endif %}
+
+  		<nav id="nav-fixed">
+			<div class="nav-previous"><a href="#" title="Older posts"><span class="meta-nav-prev">&larr;  Older posts</span></a></div>
+			<div class="nav-next"><a href="#" title="Newer posts"><span class="meta-nav-next">Newer posts &rarr;</span></a></div>
+		</nav><!-- #nav-above -->
+	   
+	<div class="clear"></div> 
+    <!-- Begin Page-navi -->
+    <ul class="page-navi">
+      {% for page_idx in pages %}
+    	<li><a href="{{url_for('blog.home',page=page_idx)}}">{{page_idx}}</a></li>
+      {% endfor %}
+    </ul>
+    <!-- End Page-navi -->
+  
+  </div><!-- #content -->
+</div><!-- #primary -->
+
+
+</div><!-- #main -->
+
+	<!--footer id="colophon" role="contentinfo">
+		<div id="supplementary" class="four">
+			<div id="first" class="widget-area" role="complementary">
+				<aside class="widget">
+					<h5 class="widget-title">Search</h5>	
+					<form method="get" id="searchform" action="http://sc.chinaz.com/">
+						<input type="text" class="field" name="s" id="s" title="Search" placeholder="" />
+						<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+					</form>
+				</aside>
+				
+				<aside class="widget">
+					<h5 class="widget-title">Recent Posts</h5>		
+						<ul>
+							<li><a href="#" title="A Wonderful Serenity">A Wonderful Serenity</a></li>
+							<li><a href="#" title="The Meridian Sun">The Meridian Sun</a></li>
+							<li><a href="#" title="Gallery Format">Gallery Format</a></li>
+							<li><a href="#" title="Gregor Samsa">Gregor Samsa</a></li>
+							<li><a href="#" title="A Life In The Day">A Life In The Day</a></li>
+						</ul>
+				</aside>
+			</div>
+	
+			<div id="second" class="widget-area" role="complementary">
+				<aside class="widget">
+					<h5 class="widget-title">Twitter</h5>
+					<div id="twitter-wrapper">
+						<div id="twitter"></div>
+						<span class="username">Follow @elemisdesign</a></span>
+					</div>
+				</aside>	
+			</div>
+	
+			<div id="third" class="widget-area" role="complementary">
+				<aside class="widget">
+					<h5 class="widget-title">Tags</h5>
+						<div class="tagcloud"><a href='#' class='tag-link-37' title='1 topic' style='font-size: 8pt;'>blogroll</a>
+						<a href='#' class='tag-link-33' title='4 topics' style='font-size: 19.666666666667pt;'>daily</a>
+						<a href='#' class='tag-link-32' title='1 topic' style='font-size: 8pt;'>dialog</a>
+						<a href='#' class='tag-link-28' title='1 topic' style='font-size: 8pt;'>gallery</a>
+						<a href='#' class='tag-link-27' title='1 topic' style='font-size: 8pt;'>journal</a>
+						<a href='#' class='tag-link-36' title='1 topic' style='font-size: 8pt;'>link</a>
+						<a href='#' class='tag-link-31' title='1 topic' style='font-size: 8pt;'>motion</a>
+						<a href='#' class='tag-link-38' title='1 topic' style='font-size: 8pt;'>music</a>
+						<a href='#' class='tag-link-25' title='5 topics' style='font-size: 22pt;'>photo</a>
+						<a href='#' class='tag-link-26' title='2 topics' style='font-size: 13.25pt;'>professional</a>
+						<a href='#' class='tag-link-29' title='1 topic' style='font-size: 8pt;'>quotation</a>
+						<a href='#' class='tag-link-34' title='1 topic' style='font-size: 8pt;'>show</a>
+						<a href='#' class='tag-link-39' title='1 topic' style='font-size: 8pt;'>sound</a>
+						<a href='#' class='tag-link-35' title='1 topic' style='font-size: 8pt;'>tv</a>
+						<a href='#' class='tag-link-30' title='1 topic' style='font-size: 8pt;'>video</a></div>
+				</aside>
+				
+				<aside class="widget">
+					<h5 class="widget-title">Archives</h5>
+						<ul>
+							<li><a href='#' title='May 2013'>May 2013</a></li>
+							<li><a href='#' title='April 2013'>April 2013</a></li>
+						</ul>
+				</aside>
+			</div>
+		
+			<div id="fourth" class="widget-area" role="complementary">
+				<aside class="widget">
+					<h5 class="widget-title">About</h5>			
+					<div class="textwidget"><p>I am alone, and feel the charm of existence in this spot, which was created for the bliss of souls like mine. </p>
+						<p>I am so happy, my dear friend, so absorbed in the exquisite sense of mere tranquil existence, that I neglect my talents.</p>
+					</div>
+				</aside>
+			</div>
+		</div>
+		<div id="site-generator">
+			Copyright 2013 - Serendipity
+		</div>
+
+	</footer-->
+	</div><!-- #wrapper -->
+</div><!-- #page -->
+
+<!--script type="text/javascript" src="{{url_for('static',filename='js/scripts.js')}}"></script>
+<div style="display:none"><script src='http://v7.cnzz.com/stat.php?id=155540&web_id=155540' language='JavaScript' charset='gb2312'></script></div-->
+</body>
+</html>

@@ -3,6 +3,7 @@ from dateutil import parser, relativedelta
 from wtforms import form, fields, validators
 from werkzeug.security import check_password_hash
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy import and_
 import sys
 if sys.version_info >= (3, 0):
     enable_search = False
@@ -20,7 +21,7 @@ class DataQuery:
 
     #@cached('article_aid')
     def get_article_by_aid(self, aid):
-        return Article.query.filter_by(aid=aid).first()
+        return Article.query.filter_by(aid=aid, is_delete=False).first()
 
     def get_articles_num(self):
         return Article.query.count()
@@ -28,7 +29,7 @@ class DataQuery:
 
     def get_next(self, update_time):
         try:
-            article = Article.query.filter(Article.update_time < update_time).\
+            article = Article.query.filter(Article.update_time < update_time, Article.is_delete==False).\
                 order_by(Article.update_time.desc()).one()
         except NoResultFound:
             return None
@@ -38,7 +39,7 @@ class DataQuery:
 
     def get_prev(self, update_time):
         try:
-            article = Article.query.filter(Article.update_time > update_time).\
+            article = Article.query.filter(Article.update_time > update_time, Article.is_delete==False).\
                 order_by(Article.update_time.asc()).one()
         except NoResultFound:
             return None
@@ -46,20 +47,22 @@ class DataQuery:
             return article
 
     def get_recent_articles(self, start_artcle, per_page):
-        return Article.query.order_by(Article.update_time.desc())[start_artcle:start_artcle + per_page]
+        return Article.query.filter_by(is_delete=False).\
+                   order_by(Article.update_time.desc())[start_artcle:start_artcle + per_page]
 
     def get_articles_with_date(self):
-        articles = Article.query.order_by(Article.update_time.desc()).all()
+        articles = Article.query.filter_by(is_delete=False).\
+            order_by(Article.update_time.desc()).all()
         return articles
 
 
     #@cached('cids', lru_length=32)
     def get_article_categories(self, aid):
-        return Article.query.filter_by(aid=aid).first().categories
+        return Article.query.filter_by(aid=aid, is_delete=False).first().categories
 
 #     @cached('tids', lru_length=32)
     def get_article_tags(self, aid):
-        return Article.query.filter_by(aid=aid).first().tags
+        return Article.query.filter_by(aid=aid, is_delete=False).first().tags
 
     def get_all_categories(self):
         return Category.query.all()
@@ -75,24 +78,25 @@ class DataQuery:
         else:
             start_date = start_date + relativedelta(day=1)
             end_date = start_date + relativedelta(months=1)
-            return Article.query.filter(Article.update_time.between(start_date,end_date)).all()
+            return Article.query.filter(and_(Article.update_time.between(start_date,end_date),\
+                                             Article.is_delete == False)).all()
 
     def get_articles_by_cname(self, cname):
-        category = Category.query.filter_by(cname=cname).first()
+        category = Category.query.filter_by(cname=cname, is_delete=False).first()
         if category:
             return category.articles
         else:
             return None
 
     def get_articles_by_tname(self, tname):
-        tag = Tag.query.filter_by(tname=tname).first()
+        tag = Tag.query.filter_by(tname=tname, is_delete=False).first()
         if tag:
             return tag.articles
         else:
             return None
 
     def search_article(self, q):
-        return Article.query.whoosh_search(q).all()
+        return Article.query.filter_by(is_delete=False).whoosh_search(q).all()
 
 
 categories = db.Table('categories',
@@ -117,6 +121,7 @@ class Article(db.Model):
                             default=datetime.now())
     update_time = db.Column(db.DateTime, nullable=True,
                             default=datetime.now())
+    is_delete = db.Column(db.Boolean, nullable=False, default=False)
 
     tags = db.relationship('Tag', secondary=tags,
                            backref=db.backref('articles', lazy='dynamic'))

@@ -1,0 +1,85 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	{%include 'head.html' %}
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/arch.css')}}" media="all" />
+</head>
+<body>
+<div id="page" class="hfeed">
+	<div id="wrapper">
+	{% include 'banner.html' %}
+	<div class="main">
+	<div id="content" role="main">
+	<div class="intro">{{intro}}</div>
+	{% if arch == "date"%}
+		
+		{% for create_time, articles in article_date.iteritems() %}
+			<div class="hentry">
+			<div class="arch-head">
+				<a href="{{url_for('blog.archive', arch='date', para=create_time)}}" class="arch-head-link">
+				{{create_time|safe}}
+				</a>
+			</div>
+			<ul class="arch-title-list">
+				{% for article in articles %}
+					<span class="arch-title-box">
+						<a href="{{url_for('blog.article', aid=article.aid)}}">
+							{{article.title|safe}}
+						</a>
+					</span>
+				{% endfor %}
+			</ul>
+			</div>
+		{% endfor %}
+
+	{% elif arch == "category" %}
+	{% for category in categories %}
+	<div class="hentry">
+		<div class="arch-head">
+			<a href="{{url_for('blog.archive', arch='category', para=category.cname)}}" class="arch-head-link">
+			{{category.cname|safe}}
+			</a>
+		</div>
+		<ul class="arch-title-list">
+		{% for article in category.articles %}
+            {% if article.is_delete %}
+		    <span class="arch-title-box">
+			    <a href="{{url_for('blog.article', aid=article.aid)}}">
+				    {{article.title|safe}}
+			    </a>
+		    </span>
+            {% endif %}
+		{% endfor %}
+		</ul>
+	</div>
+	{% endfor %}
+	{% elif arch == "tag" %}
+	{% for tag in tags %}
+	<div class="hentry">
+	<div class="arch-head">
+		<a href="{{url_for('blog.archive', arch='tag', para=tag.tname)}}" class="arch-head-link">
+		{{tag.tname|safe}}
+		</a>
+	</div>
+	<ul class="arch-title-list">
+	{% for article in tag.articles %}
+        {% if article.is_delete %}
+		<span class="arch-title-box">
+		<a href="{{url_for('blog.article', aid=article.aid)}}">
+			{{article.title|safe}}
+		</a>
+		</span>
+        {% endif %}
+	{% endfor %}
+	</ul>
+	</div>
+	{% endfor %}
+	{% else %}
+		<p>bad string</p>
+	{% endif %}
+	</div>
+	</div>
+	</div>
+</div>
+</body>
+</html>
