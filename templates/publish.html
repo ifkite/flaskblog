@@ -1,41 +1,34 @@
 <!DOCTYPE html>
-<!--
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
-For licensing, see LICENSE.md or http://ckeditor.com/license
--->
 <html>
 <head>
-	<meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='style/css/publish.css')}}" media="all" />
-    <script src="{{url_for('static',filename='js/ckeditor/ckeditor.js')}}"></script>
-    <title>undefined is not a function</title>
+    <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+    <script src= "{{url_for('static', filename='js/markdown.min.js')}}" ></script>
+    <script type="text/javascript" src="{{url_for('static', filename='js/publish.js')}}"></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/publish.css')}}" >
+
+    <link rel= "stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/monokai_sublime.min.css" >
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js" ></script>
+
+    <link rel="stylesheet" href="http://www.bootcss.com/p/buttons/css/buttons.css">
 </head>
 <body>
-<form action="{{url_for('blog.publish')}}" method="post">
-		<p>
-			<label for="editor1">
-				Editor 1:
-			</label>
-			{%if aid%}
-				<p><input type="text" id="title" name="title" placeholder="{{article['title']}}"></p>
-			{%else%}
-				<p><input type="text" id="title" name="title" placeholder="please input a title"></p>
-			{%endif%}
-			<textarea class="ckeditor" cols="79" id="slug" name="slug" rows="40">
-				{%if aid%}
-					{{article['slug']}}
-				{%endif%}
-			</textarea>
-			<textarea class="ckeditor" cols="79" id="content" name="content" rows="80">
-				{%if aid%}
-					{{article['content']}}
-				{%endif%}
-			</textarea>
-			<p><input type="text" id="category" name="category" placeholder="categories seperated by ';'"></p>
-			<p><input type="text" id="tag" name="tag" placeholder="tags seperated by ';'"></p>
-		</p>
-		<p>
-			<input type="submit" value="Submit">
-		</p>
-	</form>
+<div class="header">
+    <h1>flaskblog</h1>
+</div>
+<div class="wrapper">
+    <textarea class="sidebar" id= "text-input" oninput="this.editor.update()">#Type **title** here.</textarea>
+    <div class="main-content">
+        <div class= "markdown-body" >
+            <div id= "preview"> </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <form action="#" method="post">
+            <input name="content" type="hidden" value="">
+            <input type="submit" value="publish" class="button button-primary button-rounded button-small">
+        </form>
+    </div>
+</div>
 </body>
+</html>
