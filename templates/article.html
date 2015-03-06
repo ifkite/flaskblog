@@ -1,18 +1,8 @@
 <!DOCTYPE html>
 <html>
-<head>
     <head>
-    <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
-    <script src= "{{url_for('static', filename='js/markdown.min.js')}}" ></script>
-    <script type="text/javascript" src="{{url_for('static', filename='js/publish.js')}}"></script>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/publish.css')}}" >
-
-    <link rel= "stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/monokai_sublime.min.css" >
-    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js" ></script>
-
-    <link rel="stylesheet" href="http://www.bootcss.com/p/buttons/css/buttons.css">
-</head>
-</head>
+        {% include 'header.html' %}
+    </head>
 <body>
 <div class="header">
     <h1>flaskblog</h1>

@@ -2,6 +2,7 @@ from datetime import datetime as date
 from flask import Blueprint
 from flask import render_template,url_for,make_response,g
 from flask import abort,request,redirect,jsonify,flash
+from flask import Markup
 from wtforms import fields, widgets,validators
 from flask.ext import admin
 from flask.ext.admin.contrib import sqla
@@ -10,6 +11,7 @@ from flask.ext.admin import helpers, expose
 from werkzeug.security import check_password_hash
 from models import (Article, Category, Tag, DataQuery)
 from utils import app, db
+from bs4 import BeautifulSoup
 
 blog = Blueprint('blog', __name__)
 
@@ -20,19 +22,20 @@ dataquery = DataQuery()
 @blog.route('/home/', defaults={'page': 1})
 @blog.route('/home/<int:page>')
 def home(page):
-    """
-        return blog title, signature, search
-        return slugs and pagenation
-    """
     articles = dataquery.get_recent_articles(start_artcle=(page - 1) * app.config['PER_PAGE'],
                                              per_page=app.config['PER_PAGE'])
     article_num = dataquery.get_articles_num()
+    titles = []
+    for article in articles:
+        soup = BeautifulSoup(article.content)
+        if soup.h1:
+            titles.append(Markup(soup.h1))
     pages, mod = divmod(article_num, app.config['PER_PAGE'])
     if mod:
         pages += 1
     return render_template('index.html',
                            intro=app.config['INTRO'],
-                           articles=articles,
+                           titles=titles,
                            pages=range(1, pages + 1))
 
 
@@ -46,14 +49,14 @@ def archive(arch=None, para=None, pages=1):
         return statistics on time,
         on tags and directories
     """
-    if arch is None and para is None:
+    if not arch and not para:
         flash('arch and para is none')
         return redirect(url_for('blog.home'))
     #table driven,use dict alternative
     elif arch not in app.config['ITEMS']:
         flash(arch + ' is literal text')
         return redirect(url_for('blog.home'))
-    elif para is None:
+    elif not para:
         if arch == "date":
             articles = dataquery.get_articles_with_date()
             article_date = {}
@@ -121,7 +124,6 @@ def search():
                            intro=app.config['INTRO'],
                            articles=search_article,
                            pages=range(1, pages + 1))
-    #return 'search result'
 
 
 @blog.route('/article/<int:aid>')
@@ -129,16 +131,14 @@ def article(aid):
     #what if aid not exists
     article = dataquery.get_article_by_aid(aid=aid)
     if article:
-        page_next = dataquery.get_next(update_time=article.update_time)
-        page_prev = dataquery.get_prev(update_time=article.update_time)
-        categories = dataquery.get_article_categories(aid=article.aid)
-        tags = dataquery.get_article_tags(aid=article.aid)
-        #TODO remove commments
-        comments = []
-        #comments = dataquery.get_comments_by_aid(aid=aid)
-        return render_template('post.html', article=article,
-                               categories=categories, tags=tags,
-                               next=page_next, prev=page_prev)
+        # page_next = dataquery.get_next(update_time=article.update_time)
+        # page_prev = dataquery.get_prev(update_time=article.update_time)
+        # categories = dataquery.get_article_categories(aid=article.aid)
+        # tags = dataquery.get_article_tags(aid=article.aid)
+        # return render_template('article.html', article=article,
+        #                        categories=categories, tags=tags,
+        #                        next=page_next, prev=page_prev)
+        return render_template('article.html', article=Markup(article.content))
     else:
         abort(404)
 
@@ -147,48 +147,33 @@ def article(aid):
 @blog.route('/publish', methods=['GET', 'POST'])
 #@login.login_required
 def publish(aid=None):
-    """
-    :type aid: object
-    """
     if request.method == 'POST':
-        title = request.form.get('title')
-        slug = request.form.get('slug')
         content = request.form.get('content')
-        cates = request.form.get('category').split(app.config['CATE_SEP'])
-        tags = request.form.get('tag').split(app.config['TAG_SEP'])
         if aid is None:
-            article = Article(slug=slug, title=title, content=content)
-            for cate_req in cates:
-                cate = Category.query.filter_by(cname=cate_req).first()
-                if not cate:
-                    cate = Category(cname=cate_req)
-                    #db.session.add(cate)
-                article.categories.append(cate)
-            for tag_req in tags:
-                tag = Tag.query.filter_by(tname=tag_req).first()
-                if not tag:
-                    tag = Tag(tname=tag_req)
-                    #db.session.add(tag)
-                article.tags.append(tag)
+            article = Article(content=content)
         else:
             article = Article.query.filter_by(aid=aid).first()
-            article.slug = slug
-            article.title = title
             article.content = content
             article.update_time = date.utcnow()
         db.session.add(article)
         db.session.flush()
+        db.session.commit()
+        # create
         if aid is None:
             return redirect('/home')
+        # edit
         else:
             return redirect(url_for('blog.article', aid=aid))
 
-    #GET method
-    if aid is None:
-        return render_template('publish.html', aid=aid)
+    # GET method
     else:
-        article = Article.query.filter_by(aid=aid).first()
-        return render_template('publish.html', aid=aid, article=article)
+        # create
+        if aid is None:
+            return render_template('publish.html')
+        #edit
+        else:
+            article = Article.query.filter_by(aid=aid).first()
+            return render_template('publish.html', aid=aid, article=article)
 
 @blog.route('/delete/<int:aid>')
 def delete(aid):
@@ -220,14 +205,6 @@ def comment():
 # def not_found():
 #     return 'page not found'
 
-#class CKTextAreaWidget(widgets.TextArea):
-#    def __call__(self, field, **kwargs):
-#        kwargs.setdefault('class_', 'ckeditor')
-#        return super(CKTextAreaWidget, self).__call__(field, **kwargs)
-#
-#class CKTextAreaField(fields.TextAreaField):
-#    widget = CKTextAreaWidget()
-#
 #class PageAdmin(sqla.ModelView):
 #    form_overrides = dict(text=CKTextAreaField)
 #    create_template = 'create.html'
@@ -268,12 +245,10 @@ def comment():
 #def logout():
 #    login.logout_user()
 #    return redirect(url_for("blog.home"))
-
 # init_login()
+
 app.register_blueprint(blog)
-
 if __name__ == '__main__':
-
     app.debug = True
     #admin = admin.Admin(app, name="Example: WYSIWYG")
     #admin.add_view(PageAdmin(Page, db.session))
