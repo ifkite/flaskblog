@@ -110,12 +110,9 @@ tags = db.Table('tags',
 
 
 class Article(db.Model):
-    __searchable__ = ['title', 'slug', 'content']
+    __searchable__ = ['content']
     aid = db.Column(db.Integer, primary_key=True,
                     nullable=False, autoincrement=True)
-    #permalink = Column(String, nullable=False)
-    slug = db.Column(db.Text, nullable=False)
-    title = db.Column(db.String(255), nullable=False, unique=True)
     content = db.Column(db.Text, nullable=False)
     create_time = db.Column(db.DateTime, nullable=False,
                             default=datetime.now())
@@ -125,13 +122,10 @@ class Article(db.Model):
 
     tags = db.relationship('Tag', secondary=tags,
                            backref=db.backref('articles', lazy='dynamic'))
-
     categories = db.relationship('Category', secondary=categories,
                                  backref=db.backref('articles', lazy='dynamic'))
 
-    def __init__(self, slug, title, content):
-        self.slug = slug
-        self.title = title
+    def __init__(self, content):
         self.content = content
 
     #visable column not in Article table

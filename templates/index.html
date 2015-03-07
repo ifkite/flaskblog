@@ -4,8 +4,8 @@
         {% include 'header.html' %}
     </head>
     <body>
-        {% for title in titles %}
-            {{title}}<br/>
+        {% for content in idx_contents %}
+           <div class="header"><a href="{{url_for('blog.article',aid=content['aid'])}}">{{content['title']}}</a></div>
         {% endfor %}
     </body>
 </html>
