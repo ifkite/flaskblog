@@ -7,5 +7,30 @@
         {% for content in idx_contents %}
            <div class="header"><a href="{{url_for('blog.article',aid=content['aid'])}}">{{content['title']}}</a></div>
         {% endfor %}
+        <nav>
+            <ul class="pagination">
+                <li>
+                    {% if page_idx == 1%}
+                        <a href="#" aria-label="Previous">
+                    {% else %}
+                        <a href="{{url_for('blog.home',page=page_idx-1)}}" aria-label="Previous">
+                    {% endif %}
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% for page in page_num %}
+                    <li><a href="{{url_for('blog.home', page=page)}}">{{page}}</a></li>
+                {% endfor %}
+                <li>
+                    {% if page_idx == page_num[-1] %}
+                        <a href="#" aria-label="Next">
+                    {% else %}
+                        <a href="{{url_for('blog.home', page=page_idx)}}" aria-label="Next">
+                    {% endif %}
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </body>
 </html>

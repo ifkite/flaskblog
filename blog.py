@@ -30,13 +30,14 @@ def home(page):
         soup = BeautifulSoup(art.content)
         if soup.h1:
             idx_contents.append({"title": Markup(soup.h1), "aid": art.aid})
-    pages, mod = divmod(article_num, app.config['PER_PAGE'])
+    page_num, mod = divmod(article_num, app.config['PER_PAGE'])
     if mod:
-        pages += 1
+        page_num += 1
     return render_template('index.html',
                            intro=app.config['INTRO'],
                            idx_contents=idx_contents,
-                           pages=range(1, pages + 1))
+                           page_num=range(1, page_num + 1),
+                           page_idx=page)
 
 
 @blog.route('/archive/')
