@@ -130,16 +130,20 @@ def search():
 @blog.route('/article/<int:aid>')
 def article(aid):
     #what if aid not exists
-    article = dataquery.get_article_by_aid(aid=aid)
-    if article:
-        # page_next = dataquery.get_next(update_time=article.update_time)
-        # page_prev = dataquery.get_prev(update_time=article.update_time)
+    art = dataquery.get_article_by_aid(aid=aid)
+    if art:
+        page_next = dataquery.get_next(update_time=art.update_time)
+        page_prev = dataquery.get_prev(update_time=art.update_time)
+        page_next_aid = page_next.aid if page_next else aid
+        page_prev_aid = page_prev.aid if page_prev else aid
+
         # categories = dataquery.get_article_categories(aid=article.aid)
         # tags = dataquery.get_article_tags(aid=article.aid)
         # return render_template('article.html', article=article,
         #                        categories=categories, tags=tags,
         #                        next=page_next, prev=page_prev)
-        return render_template('article.html', article=Markup(article.content))
+        return render_template('article.html', article=Markup(art.content),
+                               next_aid=page_next_aid, prev_aid=page_prev_aid)
     else:
         abort(404)
 
@@ -183,7 +187,7 @@ def delete(aid):
         article.is_delete = True
     return redirect(url_for('blog.home'))
 
-@blog.route('/_comment',methods=["GET", "POST"])
+@blog.route('/_comment', methods=["GET", "POST"])
 def comment():
     author = request.form.get('author', 'no author', type=str)
     email = request.form.get('email', 'no email', type=str)

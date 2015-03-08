@@ -30,7 +30,7 @@ class DataQuery:
     def get_next(self, update_time):
         try:
             article = Article.query.filter(Article.update_time < update_time, Article.is_delete==False).\
-                order_by(Article.update_time.desc()).one()
+                order_by(Article.update_time.desc()).first()
         except NoResultFound:
             return None
         else:
@@ -40,7 +40,7 @@ class DataQuery:
     def get_prev(self, update_time):
         try:
             article = Article.query.filter(Article.update_time > update_time, Article.is_delete==False).\
-                order_by(Article.update_time.asc()).one()
+                order_by(Article.update_time.asc()).first()
         except NoResultFound:
             return None
         else:
